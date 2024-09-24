@@ -1,0 +1,42 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+* {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden; /* Prevent scrolling for the entire page */
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  height: 100vh; /* Full height of the view */
+}
+
+.heading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255);
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  font-weight: 700;
+  font-size: 16px;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+  z-index: 10; /* Ensure it's on top of everything */
+}
+
+/* Ensure the chat window content starts below the header */
+.App {
+  padding-top: 60px;
+}
