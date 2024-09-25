@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./ChatWindow.css";
 import { getAIMessage } from "../api/api";
+import { FiDownload } from "react-icons/fi"; // Import the download icon from react-icons
 import { marked } from "marked";
 
 function ChatWindow() {
@@ -11,27 +12,23 @@ function ChatWindow() {
     },
   ];
 
-  const [messages, setMessages] = useState(defaultMessage); // Keeps track of all messages
+  const [messages, setMessages] = useState(defaultMessage);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   const messagesEndRef = useRef(null);
 
+  // Function to scroll to the bottom of the chat
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = messagesEndRef.current.parentNode;
-  
-      // Only auto-scroll to bottom if the user is already at the bottom
-      if (scrollHeight - scrollTop <= clientHeight + 100) {
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      }
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
-  
 
+  // Auto-scroll whenever messages state updates
   useEffect(() => {
-    scrollToBottom(); // Ensures scrolling after every message update
-  }, [messages]);
+    scrollToBottom(); // Scroll to the bottom when messages are updated
+  }, [messages]); // Only triggers when `messages` changes
 
   const handleSend = async (input) => {
     if (input.trim() !== "" && !isSending) {
@@ -39,7 +36,7 @@ function ChatWindow() {
 
       // Append the user's message to the message list
       setMessages((prevMessages) => [...prevMessages, { role: "user", content: input }]);
-      setInput("");
+      setInput(""); // Clear the input field
 
       const loadingMessageId = Date.now();
 
@@ -71,9 +68,16 @@ function ChatWindow() {
       {message.best_ruling && (
         <div className="ruling-card">
           <h4>Best Ruling</h4>
-          <a href={message.best_ruling.URL} target="_blank" rel="noopener noreferrer">
-            <h5>{message.best_ruling.Title}</h5>
-          </a>
+          <div className="ruling-link-container">
+            {/* Link to search URL */}
+            <a href={message.best_ruling.SearchUrl} target="_blank" rel="noopener noreferrer" className="ruling-link">
+              <h5>{message.best_ruling.Title}</h5>
+            </a>
+            {/* Download icon for .doc URL */}
+            <a href={message.best_ruling.URL} target="_blank" rel="noopener noreferrer" className="download-icon">
+              <FiDownload size={20} /> {/* Use the download icon */}
+            </a>
+          </div>
           <p>{message.best_ruling.Summary}</p>
           {message.best_ruling.Tariffs.length > 0 && (
             <p>
@@ -87,9 +91,16 @@ function ChatWindow() {
           <h4>Related Rulings</h4>
           {message.related_rulings.map((ruling, index) => (
             <div key={index} className="ruling-card">
-              <a href={ruling.URL} target="_blank" rel="noopener noreferrer">
-                <h5>{ruling.Title}</h5>
-              </a>
+              <div className="ruling-link-container">
+                {/* Link to search URL */}
+                <a href={ruling.SearchUrl} target="_blank" rel="noopener noreferrer" className="ruling-link">
+                  <h5>{ruling.Title}</h5>
+                </a>
+                {/* Download icon for .doc URL */}
+                <a href={ruling.URL} target="_blank" rel="noopener noreferrer" className="download-icon">
+                  <FiDownload size={20} />
+                </a>
+              </div>
               <p>{ruling.Summary}</p>
               {ruling.Tariffs.length > 0 && (
                 <p>
@@ -151,7 +162,6 @@ function ChatWindow() {
     </div>
   );
 
-  // Rendering messages based on intent
   const renderMessageContent = (message) => {
     if (message.intent === "cross_rulings_inquiry") {
       return renderCrossRulings(message);
