@@ -1,5 +1,5 @@
 export const getAIMessage = async (userQuery) => {
-    const apiUrl = 'http://127.0.0.1:8000/chatbot/query';
+    const apiUrl = 'https://backend.sayl.io/chatbot/query';
 
     try {
         // Get the token from localStorage
@@ -64,7 +64,7 @@ export const getAIMessage = async (userQuery) => {
 };
 
 export const loginUser = async (email, password) => {
-    const apiUrl = 'http://127.0.0.1:8000/login';  // Update the URL as needed
+    const apiUrl = 'https://backend.sayl.io/login';  // Update the URL as needed
 
     try {
         const response = await fetch(apiUrl, {
