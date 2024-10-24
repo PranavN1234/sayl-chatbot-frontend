@@ -1,64 +1,83 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useConversations } from "../context/Conversationcontext"; // Import the useConversations hook
 import "./ChatWindow.css";
 import { getAIMessage } from "../api/api";
-import { FiDownload } from "react-icons/fi"; // Import the download icon from react-icons
+import { FiDownload } from "react-icons/fi";
 import { marked } from "marked";
 
 function ChatWindow() {
+  const { state, dispatch } = useConversations(); // Access state and dispatch from the reducer
   const defaultMessage = [
     {
       role: "assistant",
-      content: "Welcome! Ask me about cross rulings, HTS codes, or any other query.",
+      content: {
+        message: "Welcome! Ask me about cross rulings, HTS codes, or any other query.", // Store message inside content
+      },
+      intent: "general", // Set a default intent
     },
   ];
+  const activeSessionId = state.activeSessionId;
+  // Get the current active conversation's messages
+  const activeConversationId = state.activeConversationId;
+  const conversationMessages =
+    state.messages[activeConversationId] || defaultMessage;
 
-  const [messages, setMessages] = useState(defaultMessage);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   const messagesEndRef = useRef(null);
 
-  // Function to scroll to the bottom of the chat
+  // Scroll to the bottom of the chat
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  // Auto-scroll whenever messages state updates
   useEffect(() => {
-    scrollToBottom(); // Scroll to the bottom when messages are updated
-  }, [messages]); // Only triggers when `messages` changes
+    scrollToBottom(); // Scroll to bottom when messages are updated
+  }, [conversationMessages]); // Trigger scroll whenever messages change
 
-  const handleSend = async (input) => {
-    if (input.trim() !== "" && !isSending) {
-      setIsSending(true);
+  // Send message and handle AI response
+  // Send message and handle AI response
+const handleSend = async () => {
+  if (input.trim() !== "" && !isSending) {
+    setIsSending(true);
 
-      // Append the user's message to the message list
-      setMessages((prevMessages) => [...prevMessages, { role: "user", content: input }]);
-      setInput(""); // Clear the input field
+    // Dispatch the user message to the reducer
+    dispatch({
+      type: "ADD_MESSAGE",
+      payload: {
+        conversationId: activeConversationId,
+        message: { role: "user", content: input },
+      },
+    });
 
-      const loadingMessageId = Date.now();
+    setInput(""); // Clear the input field
 
-      // Append a loading message
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { role: "loading", content: "...", id: loadingMessageId },
-      ]);
+    try {
+      // Fetch the AI response
+      const newMessage = await getAIMessage(input, activeSessionId);
 
-      // Fetch new message
-      const newMessage = await getAIMessage(input);
-
-      // Replace the loading message with the response
-      setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.id === loadingMessageId ? { ...newMessage, id: undefined } : msg
-        )
-      );
-
-      setIsSending(false);
+      // Dispatch the AI response to the reducer
+      dispatch({
+        type: "ADD_MESSAGE",
+        payload: {
+          conversationId: activeConversationId,
+          message: {
+            role: "assistant",
+            content: newMessage.content,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
     }
-  };
+
+    setIsSending(false);
+  }
+};
+
 
   // Rendering Cross Rulings data
   const renderCrossRulings = (message) => (
@@ -69,13 +88,21 @@ function ChatWindow() {
         <div className="ruling-card">
           <h4>Best Ruling</h4>
           <div className="ruling-link-container">
-            {/* Link to search URL */}
-            <a href={message.best_ruling.SearchUrl} target="_blank" rel="noopener noreferrer" className="ruling-link">
+            <a
+              href={message.best_ruling.SearchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ruling-link"
+            >
               <h5>{message.best_ruling.Title}</h5>
             </a>
-            {/* Download icon for .doc URL */}
-            <a href={message.best_ruling.URL} target="_blank" rel="noopener noreferrer" className="download-icon">
-              <FiDownload size={20} /> {/* Use the download icon */}
+            <a
+              href={message.best_ruling.URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="download-icon"
+            >
+              <FiDownload size={20} />
             </a>
           </div>
           <p>{message.best_ruling.Summary}</p>
@@ -92,12 +119,20 @@ function ChatWindow() {
           {message.related_rulings.map((ruling, index) => (
             <div key={index} className="ruling-card">
               <div className="ruling-link-container">
-                {/* Link to search URL */}
-                <a href={ruling.SearchUrl} target="_blank" rel="noopener noreferrer" className="ruling-link">
+                <a
+                  href={ruling.SearchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ruling-link"
+                >
                   <h5>{ruling.Title}</h5>
                 </a>
-                {/* Download icon for .doc URL */}
-                <a href={ruling.URL} target="_blank" rel="noopener noreferrer" className="download-icon">
+                <a
+                  href={ruling.URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="download-icon"
+                >
                   <FiDownload size={20} />
                 </a>
               </div>
@@ -129,7 +164,8 @@ function ChatWindow() {
         <div className="hts-card">
           <h4>Best HTS Code</h4>
           <p>
-            <strong>{message.best_hts_code.htsno}</strong>: {message.best_hts_code.description}
+            <strong>{message.best_hts_code.htsno}</strong>:{" "}
+            {message.best_hts_code.description}
           </p>
           {message.best_hts_code.general && (
             <p>
@@ -147,7 +183,8 @@ function ChatWindow() {
                 <strong>{hts.htsno}</strong>: {hts.description}
               </p>
               <p>
-                <strong>General:</strong> {hts.general} | <strong>Special:</strong> {hts.special}
+                <strong>General:</strong> {hts.general} |{" "}
+                <strong>Special:</strong> {hts.special}
               </p>
             </div>
           ))}
@@ -163,37 +200,65 @@ function ChatWindow() {
   );
 
   const renderMessageContent = (message) => {
-    if (message.intent === "cross_rulings_inquiry") {
-      return renderCrossRulings(message);
-    } else if (message.intent === "hts_inquiry") {
-      return renderHTSInquiry(message);
-    } else {
+    
+    
+    // Ensure message exists and has content
+    if (!message || !message.content) {
+      console.log("Rendering message:", message);
+      return <div>Error: Message content is missing.</div>;
+    }
+    
+    if (message.role === "user") {
+      return <div>{message.content}</div>;
+    }
+
+    // Handle structured message objects with intent
+    if (typeof message.content === "object" && message.content.intent) {
+      if (message.content.intent === "cross_rulings_inquiry") {
+        console.log("Rendering message cross:", message.content);
+        return renderCrossRulings(message.content); // Pass structured data for cross rulings
+      } else if (message.content.intent === "hts_inquiry") {
+        console.log("Rendering message hts:", message.content);
+        return renderHTSInquiry(message.content); // Pass structured data for HTS inquiries
+      }
+    }
+  
+    // Handle string content
+    if (message.content && typeof message.content.message === "string") {
       return (
         <div
-          dangerouslySetInnerHTML={{ __html: marked(message.content).replace(/<p>|<\/p>/g, "") }}
+          dangerouslySetInnerHTML={{
+            __html: marked(message.content.message).replace(/<p>|<\/p>/g, ""),
+          }}
         />
       );
     }
+  
+    // Fallback for unsupported message formats
+    return <div>Unsupported message format</div>;
   };
 
   return (
-    <div className="messages-container">
-      {messages.map((message, index) => (
-        <div key={index} className={`${message.role}-message-container`}>
-          {message.role === "loading" ? (
-            <div className="message loading-dots">
-              <span className="dot">.</span>
-              <span className="dot">.</span>
-              <span className="dot">.</span>
-            </div>
-          ) : (
+    <div className="chat-window">
+      <div className="messages-container">
+        {conversationMessages.map((message, index) => (
+          <div key={index} className={`${message.role}-message-container`}>
             <div className={`message ${message.role}-message`}>
               {renderMessageContent(message)}
             </div>
-          )}
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+  
+      {isSending && (
+        <div className="loading-indicator">
+          <span className="dot">.</span>
+          <span className="dot">.</span>
+          <span className="dot">.</span>
         </div>
-      ))}
-      <div ref={messagesEndRef} />
+      )}
+  
       <div className="input-area">
         <input
           value={input}
@@ -201,12 +266,12 @@ function ChatWindow() {
           placeholder="Type a message..."
           onKeyPress={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
-              handleSend(input);
+              handleSend(); // Only trigger sending on pressing Enter
               e.preventDefault();
             }
           }}
         />
-        <button className="send-button" onClick={() => handleSend(input)} disabled={isSending}>
+        <button className="send-button" onClick={handleSend} disabled={isSending}>
           Send
         </button>
       </div>

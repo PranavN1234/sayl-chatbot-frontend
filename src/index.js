@@ -3,11 +3,23 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { ChakraProvider } from "@chakra-ui/react";
+import { BrowserRouter as Router } from "react-router-dom";
+import { AuthProvider } from './context/Authcontext';
+import { ConversationsProvider } from './context/Conversationcontext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <AuthProvider> {/* Wrap the entire app in AuthProvider */}
+      <Router>
+        <ChakraProvider>
+          <ConversationsProvider>
+          <App />
+          </ConversationsProvider>
+        </ChakraProvider>
+      </Router>
+    </AuthProvider>
   </React.StrictMode>
 );
 

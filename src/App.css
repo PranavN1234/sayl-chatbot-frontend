@@ -10,33 +10,70 @@
 
 html, body {
   height: 100%;
-  overflow: hidden; /* Prevent scrolling for the entire page */
+  overflow: hidden;
 }
 
-.App {
+/* Full height for the app layout */
+.app-layout {
   display: flex;
-  flex-direction: column;
-  background-color: white;
-  height: 100vh; /* Full height of the view */
+  flex-direction: row;
+  height: 100vh;
 }
 
+/* Centered login layout */
+.centered-login {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  flex: 1; /* Occupies full space */
+  height: 100vh; /* Full viewport height */
+  background-color: #f1f5f9; /* Ensure consistent background color */
+}
+
+/* Main content when user is logged in (with sidebar) */
+.main-content {
+  margin-left: 250px; /* Align next to the sidebar */
+  padding-top: 60px; /* Align below the header */
+  flex: 1;
+  height: calc(100vh - 60px); /* Full height minus the header */
+  overflow-y: auto;
+}
+
+/* When user is not logged in, no sidebar, and the login is centered */
+.login-content {
+  margin-left: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw; /* Ensure full width for login */
+  background-color: #f1f5f9; /* Match background color */
+}
+
+/* Sidebar container when logged in */
+.sidebar-container {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 250px;
+  height: calc(100vh - 60px);
+  background-color: #1b3875;
+}
+
+/* Fixed Header at the top */
 .heading {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  background: rgba(255, 255, 255);
+  height: 60px;
+  background: #fff;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
-  font-weight: 700;
-  font-size: 16px;
   justify-content: center;
   align-items: center;
-  height: 60px;
-  z-index: 10; /* Ensure it's on top of everything */
-}
-
-/* Ensure the chat window content starts below the header */
-.App {
-  padding-top: 60px;
+  font-weight: bold;
+  font-size: 16px;
+  z-index: 100;
 }

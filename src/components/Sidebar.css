@@ -1,0 +1,42 @@
+/* Sidebar Styling */
+.sidebar {
+    width: 250px;
+    background-color: #1b3875;
+    color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: fixed;
+    top: 60px;
+    left: 0;
+}
+
+.sidebar ul li {
+    padding: 10px;
+    background-color: #2a4b94;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.sidebar ul li:hover {
+    background-color: #4467cc;
+}
+
+/* Active conversation highlighting */
+.sidebar ul li.active {
+    background-color: #5b7fd6;
+}
+
+/* Logout Button Styling */
+.logout-button {
+    background-color: red;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+}
